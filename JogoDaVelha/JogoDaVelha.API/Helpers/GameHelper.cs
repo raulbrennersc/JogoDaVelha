@@ -21,14 +21,6 @@ namespace JogoDaVelha.API.Helpers
             return str;
         }
 
-        private static char[][] RotateMatrix(char[][] matrix)
-        {
-            char[][] newMatrix = new char[3][];
-            
-            return newMatrix;
-
-        }
-
         private static char[][] StringToMatrix(string str)
         {
             char[][] matrix = new char[3][];
@@ -65,17 +57,27 @@ namespace JogoDaVelha.API.Helpers
         {
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
-            foreach (var array in matrix)
+            var draw = true;
+            for (int i = 0; i < 3; i++)
             {
-                if(array.All(c => c == lastPlayer))
+                var line = matrix[i];
+                var column = matrix.Select(a => a[i]);
+                if (line.All(c => c == lastPlayer) || column.All(c => c == lastPlayer))
                 {
                     game.Winner = lastPlayer.ToString();
                     return;
                 }
+
+                if(line.Contains('-') || column.Contains('-'))
+                {
+                    draw = false;
+                }
             }
 
-
-            game.Winner = null;
+            if (draw)
+            {
+                game.Winner = "Draw";
+            }
         }
 
         public static void PrintGame(Game game)
