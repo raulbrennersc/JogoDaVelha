@@ -1,6 +1,7 @@
 ﻿using JogoDaVelha.API.Context;
 using JogoDaVelha.API.Dtos;
 using JogoDaVelha.API.Entities;
+using JogoDaVelha.API.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -32,13 +33,30 @@ namespace JogoDaVelha.API.Controllers
             var guid = new Guid(id);
             var game = _gameContext.Set<Game>().Find(guid);
 
-            object result;
             if(game == null)
             {
-                result = Ok(new MoveResultDto { Msg = "Partida não encontrada." });
+                return BadRequest(new MoveResultDto { Msg = "Partida não encontrada." });
+            }
+            if (!string.IsNullOrEmpty(game.Winner))
+            {
+                return BadRequest(new MoveResultDto { Msg = "Partida finalizada.", Winner = game.Winner });
             }
 
-            return Ok();
+            try
+            {
+                GameHelper.Move(game, movement);
+                GameHelper.Result(game);
+                if (!string.IsNullOrEmpty(game.Winner))
+                {
+                    return Ok(new MoveResultDto { Msg = "Partida finalizada.", Winner = game.Winner });
+                }
+
+                return Ok(new MoveResultDto { Msg = "Jogada efetuada com sucesso."});
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new MoveResultDto { Msg = e.Message });
+            }
         }
     }
 }

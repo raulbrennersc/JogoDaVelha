@@ -10,6 +10,7 @@ namespace JogoDaVelha.API.Entities
         public virtual Guid Id { get; set; }
         public virtual string Matrix { get; set; }
         public virtual char NextPlayer { get; set; }
+        public virtual string Winner { get; set; }
 
         public Game()
         {
