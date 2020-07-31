@@ -1,5 +1,6 @@
 ﻿using JogoDaVelha.API.Dtos;
 using JogoDaVelha.API.Entities;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,20 +10,18 @@ namespace JogoDaVelha.API.Helpers
 {
     public static class GameHelper
     {
-        private static string ArrayToString(char[][] array)
+        private static string MatrixToString(char[][] matrix)
         {
             var str = "";
-            for (int i = 0; i < 3; i++)
+            foreach (var array in matrix)
             {
-                for (int j = 0; j < 3; j++)
-                {
-                    str += array[i][j];
-                }
+                str += string.Concat(array);
+
             }
             return str;
         }
 
-        private static char[][] StringToArray(string str)
+        private static char[][] StringToMatrix(string str)
         {
             char[][] matrix = new char[3][];
             var charArr = str.ToCharArray();
@@ -35,10 +34,10 @@ namespace JogoDaVelha.API.Helpers
 
         public static void Move(Game game, MovementDto movement)
         {
-            var matrix = StringToArray(game.Matrix);
+            var matrix = StringToMatrix(game.Matrix);
             var x = movement.Position.X;
             var y = movement.Position.Y;
-            if (x > 2 || x < 0 || y > 2 || y < 0 || matrix[x][y] != '-')
+            if (x > 2 || x < 0 || y > 2 || y < 0 || matrix[2-y][x] != '-')
             {
                 throw new Exception("Jogada inválida.");
             }
@@ -48,16 +47,25 @@ namespace JogoDaVelha.API.Helpers
             }
             else
             {
-                matrix[x][y] = game.NextPlayer;
+                matrix[2-y][x] = game.NextPlayer;
                 game.NextPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
-                game.Matrix = ArrayToString(matrix);
+                game.Matrix = MatrixToString(matrix);
             }
         }
 
         public static void Result(Game game)
         {
-            var matrix = StringToArray(game.Matrix);
-            game.Winner = "Draw";
+            var matrix = StringToMatrix(game.Matrix);
+            game.Winner = null;
+        }
+
+        public static void PrintGame(Game game)
+        {
+            var matrix = StringToMatrix(game.Matrix);
+            foreach (var arrX in matrix)
+            {
+                System.Diagnostics.Debug.WriteLine(string.Concat(arrX));
+            }
         }
     }
 }

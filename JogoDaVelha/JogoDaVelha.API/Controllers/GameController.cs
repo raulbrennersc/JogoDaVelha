@@ -37,6 +37,7 @@ namespace JogoDaVelha.API.Controllers
             {
                 return BadRequest(new MoveResultDto { Msg = "Partida não encontrada." });
             }
+
             if (!string.IsNullOrEmpty(game.Winner))
             {
                 return BadRequest(new MoveResultDto { Msg = "Partida finalizada.", Winner = game.Winner });
@@ -46,6 +47,8 @@ namespace JogoDaVelha.API.Controllers
             {
                 GameHelper.Move(game, movement);
                 GameHelper.Result(game);
+                _gameContext.Set<Game>().Update(game);
+                _gameContext.SaveChangesAsync();
                 if (!string.IsNullOrEmpty(game.Winner))
                 {
                     return Ok(new MoveResultDto { Msg = "Partida finalizada.", Winner = game.Winner });
