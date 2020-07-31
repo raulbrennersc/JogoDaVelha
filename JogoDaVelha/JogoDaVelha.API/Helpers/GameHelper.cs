@@ -58,6 +58,7 @@ namespace JogoDaVelha.API.Helpers
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
             var draw = true;
+            //Vericiando linhas e colunas
             for (int i = 0; i < 3; i++)
             {
                 var line = matrix[i];
@@ -74,7 +75,20 @@ namespace JogoDaVelha.API.Helpers
                 }
             }
 
-            if (draw)
+            //Verificando diagonais
+            var diag1 = new char[3];
+            var diag2 = new char[3];
+            for (int i = 0; i < 3; i++)
+            {
+                diag1[i] = matrix[i][i];
+                diag2[i] = matrix[i][2 - i];
+            }
+
+            if(diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
+            {
+                game.Winner = lastPlayer.ToString();
+            }
+            else if (draw)
             {
                 game.Winner = "Draw";
             }
