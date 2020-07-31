@@ -3,6 +3,7 @@ using JogoDaVelha.API.Dtos;
 using JogoDaVelha.API.Entities;
 using JogoDaVelha.API.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 
 namespace JogoDaVelha.API.Controllers
@@ -12,15 +13,17 @@ namespace JogoDaVelha.API.Controllers
     public class GameController : ControllerBase
     {
         private readonly GameContext _gameContext;
-        public GameController(GameContext gameContext)
+        private readonly int GameSize;
+        public GameController(GameContext gameContext, IConfiguration config)
         {
             _gameContext = gameContext;
+            GameSize = int.Parse(config.GetSection("AppSettings:GameSize").Value);
         }
 
         [HttpPost]
         public ActionResult CreateGame()
         {
-            var newGame = new Game();
+            var newGame = new Game(GameSize);
             _gameContext.Set<Game>().Add(newGame);
             _gameContext.SaveChanges();
             var response = new { newGame.Id, FirstPlayer = newGame.NextPlayer };
@@ -45,8 +48,9 @@ namespace JogoDaVelha.API.Controllers
 
             try
             {
-                GameHelper.Move(game, movement);
-                GameHelper.Result(game);
+                var gameHelper = new GameHelper(GameSize);
+                gameHelper.Move(game, movement);
+                gameHelper.Result(game);
                 _gameContext.Set<Game>().Update(game);
                 _gameContext.SaveChangesAsync();
                 if (!string.IsNullOrEmpty(game.Winner))

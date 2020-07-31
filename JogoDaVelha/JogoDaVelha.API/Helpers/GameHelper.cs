@@ -1,5 +1,6 @@
 ﻿using JogoDaVelha.API.Dtos;
 using JogoDaVelha.API.Entities;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,16 @@ using System.Threading.Tasks;
 
 namespace JogoDaVelha.API.Helpers
 {
-    public static class GameHelper
+    public class GameHelper
     {
-        private static string MatrixToString(char[][] matrix)
+
+        private readonly int GameSize;
+        public GameHelper(int gameSize)
+        {
+            GameSize = gameSize;
+        }
+
+        public string MatrixToString(char[][] matrix)
         {
             var str = "";
             foreach (var array in matrix)
@@ -21,23 +29,24 @@ namespace JogoDaVelha.API.Helpers
             return str;
         }
 
-        private static char[][] StringToMatrix(string str)
+        public char[][] StringToMatrix(string str)
         {
-            char[][] matrix = new char[3][];
+            char[][] matrix = new char[GameSize][];
             var charArr = str.ToCharArray();
-            matrix[0] = charArr.Take(3).ToArray();
-            matrix[1] = charArr.Skip(3).Take(3).ToArray();
-            matrix[2] = charArr.Skip(6).Take(3).ToArray();
-
+            for (int i = 0; i < GameSize; i++)
+            {
+                matrix[GameSize] = charArr.Skip(GameSize * i).Take(GameSize).ToArray();
+            }
             return matrix;
         }
 
-        public static void Move(Game game, MovementDto movement)
+        public void Move(Game game, MovementDto movement)
         {
             var matrix = StringToMatrix(game.Matrix);
             var x = movement.Position.X;
             var y = movement.Position.Y;
-            if (x > 2 || x < 0 || y > 2 || y < 0 || matrix[2-y][x] != '-')
+            var lastIndex = GameSize - 1;
+            if (x > lastIndex || x < 0 || y > lastIndex || y < 0 || matrix[lastIndex-y][x] != '-')
             {
                 throw new Exception("Jogada inválida.");
             }
@@ -47,19 +56,20 @@ namespace JogoDaVelha.API.Helpers
             }
             else
             {
-                matrix[2-y][x] = game.NextPlayer;
+                matrix[lastIndex-y][x] = game.NextPlayer;
                 game.NextPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
                 game.Matrix = MatrixToString(matrix);
             }
         }
 
-        public static void Result(Game game)
+        public void Result(Game game)
         {
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
             var draw = true;
+
             //Vericiando linhas e colunas
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < GameSize; i++)
             {
                 var line = matrix[i];
                 var column = matrix.Select(a => a[i]);
@@ -76,12 +86,12 @@ namespace JogoDaVelha.API.Helpers
             }
 
             //Verificando diagonais
-            var diag1 = new char[3];
-            var diag2 = new char[3];
-            for (int i = 0; i < 3; i++)
+            var diag1 = new char[GameSize];
+            var diag2 = new char[GameSize];
+            for (int i = 0; i < GameSize; i++)
             {
                 diag1[i] = matrix[i][i];
-                diag2[i] = matrix[i][2 - i];
+                diag2[i] = matrix[i][GameSize - 1 - i];
             }
 
             if(diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
@@ -94,7 +104,7 @@ namespace JogoDaVelha.API.Helpers
             }
         }
 
-        public static void PrintGame(Game game)
+        public void PrintGame(Game game)
         {
             var matrix = StringToMatrix(game.Matrix);
             foreach (var arrX in matrix)
