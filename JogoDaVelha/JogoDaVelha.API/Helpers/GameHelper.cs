@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace JogoDaVelha.API.Helpers
@@ -16,9 +17,16 @@ namespace JogoDaVelha.API.Helpers
             foreach (var array in matrix)
             {
                 str += string.Concat(array);
-
             }
             return str;
+        }
+
+        private static char[][] RotateMatrix(char[][] matrix)
+        {
+            char[][] newMatrix = new char[3][];
+            
+            return newMatrix;
+
         }
 
         private static char[][] StringToMatrix(string str)
@@ -55,7 +63,18 @@ namespace JogoDaVelha.API.Helpers
 
         public static void Result(Game game)
         {
+            var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
+            foreach (var array in matrix)
+            {
+                if(array.All(c => c == lastPlayer))
+                {
+                    game.Winner = lastPlayer.ToString();
+                    return;
+                }
+            }
+
+
             game.Winner = null;
         }
 
