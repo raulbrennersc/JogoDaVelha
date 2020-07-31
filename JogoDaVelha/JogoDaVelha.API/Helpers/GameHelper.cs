@@ -1,18 +1,12 @@
 ﻿using JogoDaVelha.API.Dtos;
 using JogoDaVelha.API.Entities;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using System.Threading.Tasks;
 
 namespace JogoDaVelha.API.Helpers
 {
     public class GameHelper
     {
-
         private readonly int GameSize;
         public GameHelper(int gameSize)
         {
@@ -46,17 +40,17 @@ namespace JogoDaVelha.API.Helpers
             var x = movement.Position.X;
             var y = movement.Position.Y;
             var lastIndex = GameSize - 1;
-            if (x > lastIndex || x < 0 || y > lastIndex || y < 0 || matrix[lastIndex-y][x] != '-')
+            if (x > lastIndex || x < 0 || y > lastIndex || y < 0 || matrix[lastIndex - y][x] != '-')
             {
                 throw new Exception("Jogada inválida.");
             }
-            else if(game.NextPlayer != movement.Player)
+            else if (game.NextPlayer != movement.Player)
             {
                 throw new Exception("Não é o turno do jogador.");
             }
             else
             {
-                matrix[lastIndex-y][x] = game.NextPlayer;
+                matrix[lastIndex - y][x] = game.NextPlayer;
                 game.NextPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
                 game.Matrix = MatrixToString(matrix);
             }
@@ -79,7 +73,7 @@ namespace JogoDaVelha.API.Helpers
                     return;
                 }
 
-                if(line.Contains('-') || column.Contains('-'))
+                if (line.Contains('-') || column.Contains('-'))
                 {
                     draw = false;
                 }
@@ -94,7 +88,7 @@ namespace JogoDaVelha.API.Helpers
                 diag2[i] = matrix[i][GameSize - 1 - i];
             }
 
-            if(diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
+            if (diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
             {
                 game.Winner = lastPlayer.ToString();
             }

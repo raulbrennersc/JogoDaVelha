@@ -36,7 +36,7 @@ namespace JogoDaVelha.API.Controllers
             var guid = new Guid(id);
             var game = _gameContext.Set<Game>().Find(guid);
 
-            if(game == null)
+            if (game == null)
             {
                 return BadRequest(new MoveResultDto { Msg = "Partida não encontrada." });
             }
@@ -58,9 +58,9 @@ namespace JogoDaVelha.API.Controllers
                     return Ok(new MoveResultDto { Msg = "Partida finalizada.", Winner = game.Winner });
                 }
 
-                return Ok(new MoveResultDto { Msg = "Jogada efetuada com sucesso."});
+                return Ok(new MoveResultDto { Msg = "Jogada efetuada com sucesso." });
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new MoveResultDto { Msg = e.Message });
             }
