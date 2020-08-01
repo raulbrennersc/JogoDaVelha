@@ -12,28 +12,6 @@ namespace JogoDaVelha.API.Helpers
         {
             GameSize = gameSize;
         }
-
-        public string MatrixToString(char[][] matrix)
-        {
-            var str = "";
-            foreach (var array in matrix)
-            {
-                str += string.Concat(array);
-            }
-            return str;
-        }
-
-        public char[][] StringToMatrix(string str)
-        {
-            char[][] matrix = new char[GameSize][];
-            var charArr = str.ToCharArray();
-            for (int i = 0; i < GameSize; i++)
-            {
-                matrix[i] = charArr.Skip(GameSize * i).Take(GameSize).ToArray();
-            }
-            return matrix;
-        }
-
         public void Move(Game game, MovementDto movement)
         {
             var matrix = StringToMatrix(game.Matrix);
@@ -55,7 +33,6 @@ namespace JogoDaVelha.API.Helpers
                 game.Matrix = MatrixToString(matrix);
             }
         }
-
         public void Result(Game game)
         {
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
@@ -100,7 +77,25 @@ namespace JogoDaVelha.API.Helpers
 
             game.Winner = draw ? "Draw" : null;
         }
-
+        public string MatrixToString(char[][] matrix)
+        {
+            var str = "";
+            foreach (var array in matrix)
+            {
+                str += string.Concat(array);
+            }
+            return str;
+        }
+        public char[][] StringToMatrix(string str)
+        {
+            char[][] matrix = new char[GameSize][];
+            var charArr = str.ToCharArray();
+            for (int i = 0; i < GameSize; i++)
+            {
+                matrix[i] = charArr.Skip(GameSize * i).Take(GameSize).ToArray();
+            }
+            return matrix;
+        }
         public void PrintGame(Game game)
         {
             var matrix = StringToMatrix(game.Matrix);
