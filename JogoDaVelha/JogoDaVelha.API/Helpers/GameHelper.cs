@@ -60,18 +60,7 @@ namespace JogoDaVelha.API.Helpers
         {
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
-            if (VerifyWinner(matrix, lastPlayer))
-            {
-                game.Winner = lastPlayer.ToString();
-            }
-            else if(matrix.All(a => a.All(c => c != '-')))
-            {
-                game.Winner = "Draw";
-            }
-        }
-
-        public bool VerifyWinner(char[][] matrix, char lastPlayer)
-        {
+            var draw = true;
             //Vericiando linhas e colunas
             for (int i = 0; i < GameSize; i++)
             {
@@ -79,7 +68,13 @@ namespace JogoDaVelha.API.Helpers
                 var column = matrix.Select(a => a[i]);
                 if (line.All(c => c == lastPlayer) || column.All(c => c == lastPlayer))
                 {
-                    return true;
+                    game.Winner = lastPlayer.ToString();
+                    return;
+                }
+
+                if(!line.Contains('X') || !line.Contains('O') && !column.Contains('X') || !column.Contains('O'))
+                {
+                    draw = false;
                 }
             }
 
@@ -92,7 +87,18 @@ namespace JogoDaVelha.API.Helpers
                 diag2[i] = matrix[i][GameSize - 1 - i];
             }
 
-            return diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer);
+            if(diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
+            {
+                game.Winner = lastPlayer.ToString();
+                return;
+            }
+
+            if (!diag1.Contains('X') || !diag1.Contains('O') && !diag2.Contains('X') || !diag2.Contains('O'))
+            {
+                draw = false;
+            }
+
+            game.Winner = draw ? "Draw" : null;
         }
 
         public void PrintGame(Game game)
@@ -103,6 +109,5 @@ namespace JogoDaVelha.API.Helpers
                 System.Diagnostics.Debug.WriteLine(string.Concat(arrX));
             }
         }
-
     }
 }
