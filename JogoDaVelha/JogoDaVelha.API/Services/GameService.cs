@@ -5,10 +5,10 @@ using System.Linq;
 
 namespace JogoDaVelha.API.Helpers
 {
-    public class GameHelper
+    public class GameService
     {
         private readonly int GameSize;
-        public GameHelper(int gameSize)
+        public GameService(int gameSize)
         {
             GameSize = gameSize;
         }

@@ -5,6 +5,7 @@ using JogoDaVelha.API.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Threading.Tasks;
 
 namespace JogoDaVelha.API.Controllers
 {
@@ -21,17 +22,17 @@ namespace JogoDaVelha.API.Controllers
         }
 
         [HttpPost]
-        public ActionResult CreateGame()
+        public async Task <IActionResult> CreateGame()
         {
             var newGame = new Game(GameSize);
             _gameContext.Set<Game>().Add(newGame);
-            _gameContext.SaveChanges();
+            await _gameContext.SaveChangesAsync();
             var response = new { newGame.Id, FirstPlayer = newGame.NextPlayer };
             return Ok(response);
         }
 
         [HttpPost("{id}/movement")]
-        public ActionResult Movement(string id, MovementDto movement)
+        public async Task <IActionResult> Movement(string id, MovementDto movement)
         {
             var guid = new Guid(id);
             var game = _gameContext.Set<Game>().Find(guid);
@@ -48,11 +49,11 @@ namespace JogoDaVelha.API.Controllers
 
             try
             {
-                var gameHelper = new GameHelper(GameSize);
+                var gameHelper = new GameService(GameSize);
                 gameHelper.Move(game, movement);
                 gameHelper.Result(game);
                 _gameContext.Set<Game>().Update(game);
-                _gameContext.SaveChangesAsync();
+                await _gameContext.SaveChangesAsync();
                 if (game.Winner != null )
                 {
                     return Ok(new MoveResultDto { Msg = "Partida finalizada.", Winner = game.Winner });

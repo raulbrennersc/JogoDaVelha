@@ -15,7 +15,7 @@ namespace JogoDaVelha.API.Entities
             var rand = new Random().NextDouble();
             NextPlayer = rand > 0.5 ? 'X' : 'O';
             //O EFCore não consegue salvar arrays de tipos primitivos
-            //então a matriz que representa o jogo será uma string de tamanho 9 (3x3)
+            //então a matriz que representa o jogo será uma string de tamanho definido no appsettings.json
             Matrix = "";
             for (int i = 0; i < gameSize * gameSize; i++)
             {
