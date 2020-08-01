@@ -29,7 +29,7 @@ namespace JogoDaVelha.API.Helpers
             var charArr = str.ToCharArray();
             for (int i = 0; i < GameSize; i++)
             {
-                matrix[GameSize] = charArr.Skip(GameSize * i).Take(GameSize).ToArray();
+                matrix[i] = charArr.Skip(GameSize * i).Take(GameSize).ToArray();
             }
             return matrix;
         }

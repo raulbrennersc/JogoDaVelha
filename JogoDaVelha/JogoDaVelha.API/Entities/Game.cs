@@ -9,6 +9,7 @@ namespace JogoDaVelha.API.Entities
         public virtual char NextPlayer { get; set; }
         public virtual string Winner { get; set; }
 
+        public Game() { }
         public Game(int gameSize)
         {
             var rand = new Random().NextDouble();
