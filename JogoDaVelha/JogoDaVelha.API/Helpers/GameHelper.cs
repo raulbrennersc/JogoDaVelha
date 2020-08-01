@@ -60,8 +60,18 @@ namespace JogoDaVelha.API.Helpers
         {
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
-            var draw = true;
+            if (VerifyWinner(matrix, lastPlayer))
+            {
+                game.Winner = lastPlayer.ToString();
+            }
+            else if(matrix.All(a => a.All(c => c != '-')))
+            {
+                game.Winner = "Draw";
+            }
+        }
 
+        public bool VerifyWinner(char[][] matrix, char lastPlayer)
+        {
             //Vericiando linhas e colunas
             for (int i = 0; i < GameSize; i++)
             {
@@ -69,13 +79,7 @@ namespace JogoDaVelha.API.Helpers
                 var column = matrix.Select(a => a[i]);
                 if (line.All(c => c == lastPlayer) || column.All(c => c == lastPlayer))
                 {
-                    game.Winner = lastPlayer.ToString();
-                    return;
-                }
-
-                if (line.Contains('-') || column.Contains('-'))
-                {
-                    draw = false;
+                    return true;
                 }
             }
 
@@ -88,14 +92,7 @@ namespace JogoDaVelha.API.Helpers
                 diag2[i] = matrix[i][GameSize - 1 - i];
             }
 
-            if (diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
-            {
-                game.Winner = lastPlayer.ToString();
-            }
-            else if (draw)
-            {
-                game.Winner = "Draw";
-            }
+            return diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer);
         }
 
         public void PrintGame(Game game)
@@ -106,5 +103,6 @@ namespace JogoDaVelha.API.Helpers
                 System.Diagnostics.Debug.WriteLine(string.Concat(arrX));
             }
         }
+
     }
 }
