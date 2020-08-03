@@ -1,7 +1,7 @@
 ﻿using JogoDaVelha.API.Context;
 using JogoDaVelha.API.Dtos;
 using JogoDaVelha.API.Entities;
-using JogoDaVelha.API.Helpers;
+using JogoDaVelha.API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -14,28 +14,28 @@ namespace JogoDaVelha.API.Controllers
     public class GameController : ControllerBase
     {
         private readonly GameContext _gameContext;
-        private readonly int GameSize;
-        public GameController(GameContext gameContext, IConfiguration config)
+        private readonly int _gameSize;
+        private readonly IGameService _gameService;
+        public GameController(GameContext gameContext, IGameService gameService, IConfiguration config)
         {
             _gameContext = gameContext;
-            GameSize = int.Parse(config.GetSection("AppSettings:GameSize").Value);
+            _gameSize = int.Parse(config.GetSection("AppSettings:GameSize").Value);
+            _gameService = gameService;
         }
 
         [HttpPost]
-        public async Task <IActionResult> CreateGame()
+        public async Task<IActionResult> CreateGame()
         {
-            var newGame = new Game(GameSize);
-            _gameContext.Set<Game>().Add(newGame);
+            var newGame = _gameService.Create(_gameSize);
             await _gameContext.SaveChangesAsync();
             var response = new { newGame.Id, FirstPlayer = newGame.NextPlayer };
             return Ok(response);
         }
 
         [HttpPost("{id}/movement")]
-        public async Task <IActionResult> Movement(string id, MovementDto movement)
+        public async Task<IActionResult> Movement(string id, MovementDto movement)
         {
-            var guid = new Guid(id);
-            var game = _gameContext.Set<Game>().Find(guid);
+            var game = _gameService.Get(id);
 
             if (game == null)
             {
@@ -49,13 +49,11 @@ namespace JogoDaVelha.API.Controllers
 
             try
             {
-                var gameService = new GameService(GameSize);
-                gameService.Move(game, movement);
-                gameService.Result(game);
-
+                _gameService.Move(game, movement);
+                _gameService.Result(game);
                 _gameContext.Set<Game>().Update(game);
                 await _gameContext.SaveChangesAsync();
-                if (game.Winner != null )
+                if (game.Winner != null)
                 {
                     return Ok(new MoveResultDto { Msg = "Partida finalizada.", Winner = game.Winner });
                 }

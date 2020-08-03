@@ -1,25 +1,40 @@
-﻿using JogoDaVelha.API.Dtos;
+﻿using JogoDaVelha.API.Context;
+using JogoDaVelha.API.Dtos;
 using JogoDaVelha.API.Entities;
+using JogoDaVelha.API.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace JogoDaVelha.API.Helpers
 {
-    public class GameService
+    public class GameService : IGameService
     {
-        private readonly int GameSize;
-        public GameService(int gameSize)
+        public DbSet<Game> Games { get; set; }
+
+        public GameService(GameContext context)
         {
-            GameSize = gameSize;
+            Games = context.Games;
         }
+
+        public Game Get(string id)
+        {
+            return Games.Find(new Guid(id));
+        }
+
+        public Game Create(int gameSize)
+        {
+            var newGame = new Game(gameSize);
+            Games.Add(newGame);
+            return newGame;
+        }
+
         public void Move(Game game, MovementDto movement)
         {
             var matrix = StringToMatrix(game.Matrix);
             var x = movement.Position.X;
             var y = movement.Position.Y;
-            var lastIndex = GameSize - 1;
+            var lastIndex = matrix.Length - 1;
             if (x > lastIndex || x < 0 || y > lastIndex || y < 0 || matrix[lastIndex - y][x] != '-')
             {
                 throw new Exception("Jogada inválida.");
@@ -33,42 +48,46 @@ namespace JogoDaVelha.API.Helpers
                 matrix[lastIndex - y][x] = game.NextPlayer;
                 game.NextPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
                 game.Matrix = MatrixToString(matrix);
+                Games.Update(game);
             }
         }
+
         public void Result(Game game)
         {
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
             var draw = true;
             //Vericiando linhas e colunas
-            for (int i = 0; i < GameSize; i++)
+            for (int i = 0; i < matrix.Length; i++)
             {
                 var line = matrix[i];
                 var column = matrix.Select(a => a[i]);
                 if (line.All(c => c == lastPlayer) || column.All(c => c == lastPlayer))
                 {
                     game.Winner = lastPlayer.ToString();
+                    Games.Update(game);
                     return;
                 }
 
-                if(!line.Contains('X') || !line.Contains('O') || !column.Contains('X') || !column.Contains('O'))
+                if (!line.Contains('X') || !line.Contains('O') || !column.Contains('X') || !column.Contains('O'))
                 {
                     draw = false;
                 }
             }
 
             //Verificando diagonais
-            var diag1 = new char[GameSize];
-            var diag2 = new char[GameSize];
-            for (int i = 0; i < GameSize; i++)
+            var diag1 = new char[matrix.Length];
+            var diag2 = new char[matrix.Length];
+            for (int i = 0; i < matrix.Length; i++)
             {
                 diag1[i] = matrix[i][i];
-                diag2[i] = matrix[i][GameSize - 1 - i];
+                diag2[i] = matrix[i][matrix.Length - 1 - i];
             }
 
-            if(diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
+            if (diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
             {
                 game.Winner = lastPlayer.ToString();
+                Games.Update(game);
                 return;
             }
 
@@ -79,7 +98,8 @@ namespace JogoDaVelha.API.Helpers
 
             game.Winner = draw ? "Draw" : null;
         }
-        public string MatrixToString(char[][] matrix)
+
+        private string MatrixToString(char[][] matrix)
         {
             var str = "";
             foreach (var array in matrix)
@@ -88,16 +108,19 @@ namespace JogoDaVelha.API.Helpers
             }
             return str;
         }
-        public char[][] StringToMatrix(string str)
+
+        private char[][] StringToMatrix(string str)
         {
-            char[][] matrix = new char[GameSize][];
+            var size = (int)Math.Sqrt(str.Length);
+            char[][] matrix = new char[size][];
             var charArr = str.ToCharArray();
-            for (int i = 0; i < GameSize; i++)
+            for (int i = 0; i < size; i++)
             {
-                matrix[i] = charArr.Skip(GameSize * i).Take(GameSize).ToArray();
+                matrix[i] = charArr.Skip(size * i).Take(size).ToArray();
             }
             return matrix;
         }
+
         public void PrintGame(Game game)
         {
             var matrix = StringToMatrix(game.Matrix);

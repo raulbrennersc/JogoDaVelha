@@ -1,4 +1,6 @@
 using JogoDaVelha.API.Context;
+using JogoDaVelha.API.Helpers;
+using JogoDaVelha.API.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,7 @@ namespace JogoDaVelha.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<GameContext>(gc => gc.UseInMemoryDatabase("jogo_da_velha"));
+            services.AddScoped<IGameService, GameService>();
             services.AddControllers();
         }
 
