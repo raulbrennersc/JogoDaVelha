@@ -10,11 +10,13 @@ namespace JogoDaVelha.API.Helpers
 {
     public class GameService : IGameService
     {
+        private GameContext GameContext { get; set; }
         public DbSet<Game> Games { get; set; }
 
         public GameService(GameContext context)
         {
             Games = context.Games;
+            GameContext = context;
         }
 
         public Game Get(string id)
@@ -26,6 +28,7 @@ namespace JogoDaVelha.API.Helpers
         {
             var newGame = new Game(gameSize);
             Games.Add(newGame);
+            GameContext.SaveChanges();
             return newGame;
         }
 
@@ -49,6 +52,8 @@ namespace JogoDaVelha.API.Helpers
                 game.NextPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
                 game.Matrix = MatrixToString(matrix);
                 Games.Update(game);
+                GameContext.SaveChanges();
+
             }
         }
 
@@ -56,47 +61,56 @@ namespace JogoDaVelha.API.Helpers
         {
             var lastPlayer = game.NextPlayer == 'X' ? 'O' : 'X';
             var matrix = StringToMatrix(game.Matrix);
+            var i = 0;
             var draw = true;
             //Vericiando linhas e colunas
-            for (int i = 0; i < matrix.Length; i++)
+            while (game.Winner == null && i < matrix.Length)
             {
                 var line = matrix[i];
                 var column = matrix.Select(a => a[i]);
                 if (line.All(c => c == lastPlayer) || column.All(c => c == lastPlayer))
                 {
                     game.Winner = lastPlayer.ToString();
-                    Games.Update(game);
-                    return;
                 }
 
                 if (!line.Contains('X') || !line.Contains('O') || !column.Contains('X') || !column.Contains('O'))
                 {
                     draw = false;
                 }
+                i++;
             }
 
             //Verificando diagonais
-            var diag1 = new char[matrix.Length];
-            var diag2 = new char[matrix.Length];
-            for (int i = 0; i < matrix.Length; i++)
+            if (game.Winner == null)
             {
-                diag1[i] = matrix[i][i];
-                diag2[i] = matrix[i][matrix.Length - 1 - i];
+                var diag1 = new char[matrix.Length];
+                var diag2 = new char[matrix.Length];
+                for (i = 0; i < matrix.Length; i++)
+                {
+                    diag1[i] = matrix[i][i];
+                    diag2[i] = matrix[i][matrix.Length - 1 - i];
+                }
+
+                if (diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
+                {
+                    game.Winner = lastPlayer.ToString();
+                }
+
+                if (!diag1.Contains('X') || !diag1.Contains('O') || !diag2.Contains('X') || !diag2.Contains('O'))
+                {
+                    draw = false;
+                }
             }
 
-            if (diag1.All(c => c == lastPlayer) || diag2.All(c => c == lastPlayer))
+            if (draw)
             {
-                game.Winner = lastPlayer.ToString();
+                game.Winner = draw ? "Draw" : null;
+            }
+            if (game.Winner != null)
+            {
                 Games.Update(game);
-                return;
+                GameContext.SaveChanges();
             }
-
-            if (!diag1.Contains('X') || !diag1.Contains('O') || !diag2.Contains('X') || !diag2.Contains('O'))
-            {
-                draw = false;
-            }
-
-            game.Winner = draw ? "Draw" : null;
         }
 
         private string MatrixToString(char[][] matrix)
