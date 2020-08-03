@@ -15,12 +15,10 @@ namespace JogoDaVelha.API.Controllers
     {
         private readonly GameContext _gameContext;
         private readonly int GameSize;
-        private readonly bool UseCheckDrawRecursive;
         public GameController(GameContext gameContext, IConfiguration config)
         {
             _gameContext = gameContext;
             GameSize = int.Parse(config.GetSection("AppSettings:GameSize").Value);
-            UseCheckDrawRecursive = bool.Parse(config.GetSection("AppSettings:UseCheckDrawRecursive").Value);
         }
 
         [HttpPost]
@@ -53,18 +51,7 @@ namespace JogoDaVelha.API.Controllers
             {
                 var gameService = new GameService(GameSize);
                 gameService.Move(game, movement);
-
-                if (UseCheckDrawRecursive)
-                {
-                    var watch = new System.Diagnostics.Stopwatch();
-                    watch.Start();
-                    gameService.CheckDrawRecursive(game);
-                    watch.Stop();
-                }
-                else
-                {
-                    gameService.Result(game);
-                }
+                gameService.Result(game);
 
                 _gameContext.Set<Game>().Update(game);
                 await _gameContext.SaveChangesAsync();
