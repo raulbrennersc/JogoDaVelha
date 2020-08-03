@@ -3,6 +3,7 @@ using JogoDaVelha.API.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace JogoDaVelha.API.Helpers
 {
@@ -138,32 +139,49 @@ namespace JogoDaVelha.API.Helpers
 
             return null;
         }
-        public bool CheckDrawRecursive(Game game, List<string> matrices = null)
+        public bool CheckDrawRecursive(Game game, List<string> notDrawMatrices = null, List<string> drawMatrices = null)
         {
-            if(matrices == null)
+            if(notDrawMatrices == null)
             {
-                matrices = new List<string>();
+                notDrawMatrices = new List<string>();
+                drawMatrices = new List<string>();
             }
+            else if (notDrawMatrices.Contains(game.Matrix))
+            {
+                return false;
+            }
+            else if(drawMatrices.Contains(game.Matrix))
+            {
+                game.Winner = "Draw";
+                return true;
+            }
+
             var draw = false;
-            if(matrices.Contains(game.Matrix) || !game.Matrix.Contains("-") && CheckWinner(game) == null)
+            Result(game);
+            if(game.Winner == "Draw")
             {
                 draw = true;
             }
-            else
+            else if(game.Winner == null)
             {
                 var moves = ListMoves(game);
-                var tuples = moves.Select(m => new Tuple<Game, MovementDto>(new Game { Matrix = game.Matrix, NextPlayer = game.NextPlayer }, m)).ToArray();
-                Array.ForEach(tuples, t => Move(t.Item1, t.Item2));
-                draw = tuples.Any() && tuples.All(t => CheckDrawRecursive(t.Item1, matrices));
+                if (moves.Any())
+                {
+                    var tuples = moves.Select(m => new Tuple<Game, MovementDto>(new Game { Matrix = game.Matrix, NextPlayer = game.NextPlayer }, m)).ToArray();
+                    Array.ForEach(tuples, t => Move(t.Item1, t.Item2));
+                    Parallel.ForEach(tuples, t => CheckDrawRecursive(t.Item1, notDrawMatrices, drawMatrices));
+                    draw = tuples.All(t => t.Item1.Winner == "Draw");
+                }
             }
 
-            if (draw)
+            if (!draw)
+            {
+                notDrawMatrices.Add(game.Matrix);
+            }
+            else
             {
                 game.Winner = "Draw";
-                if(matrices.All(m => m != game.Matrix))
-                {
-                    matrices.Add(game.Matrix);
-                }
+                drawMatrices.Add(game.Matrix);
             }
             return draw;
         }

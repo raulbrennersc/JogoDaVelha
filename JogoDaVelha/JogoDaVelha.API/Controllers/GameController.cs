@@ -20,7 +20,7 @@ namespace JogoDaVelha.API.Controllers
         {
             _gameContext = gameContext;
             GameSize = int.Parse(config.GetSection("AppSettings:GameSize").Value);
-            UseCheckDrawRecursive = bool.Parse(config.GetSection("AppSettings:GameSize").Value);
+            UseCheckDrawRecursive = bool.Parse(config.GetSection("AppSettings:UseCheckDrawRecursive").Value);
         }
 
         [HttpPost]
@@ -56,10 +56,10 @@ namespace JogoDaVelha.API.Controllers
 
                 if (UseCheckDrawRecursive)
                 {
-                    if (!gameService.CheckDrawRecursive(game))
-                    {
-                        gameService.CheckWinner(game);
-                    }
+                    var watch = new System.Diagnostics.Stopwatch();
+                    watch.Start();
+                    gameService.CheckDrawRecursive(game);
+                    watch.Stop();
                 }
                 else
                 {
