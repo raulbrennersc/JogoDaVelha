@@ -148,10 +148,6 @@ namespace JogoDaVelha.API.Helpers
             if(matrices.Contains(game.Matrix) || !game.Matrix.Contains("-") && CheckWinner(game) == null)
             {
                 draw = true;
-                if (matrices.All(m => m != game.Matrix))
-                {
-                    matrices.Add(game.Matrix);
-                }
             }
             else
             {
