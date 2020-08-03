@@ -15,10 +15,12 @@ namespace JogoDaVelha.API.Controllers
     {
         private readonly GameContext _gameContext;
         private readonly int GameSize;
+        private readonly bool UseCheckDrawRecursive;
         public GameController(GameContext gameContext, IConfiguration config)
         {
             _gameContext = gameContext;
             GameSize = int.Parse(config.GetSection("AppSettings:GameSize").Value);
+            UseCheckDrawRecursive = bool.Parse(config.GetSection("AppSettings:GameSize").Value);
         }
 
         [HttpPost]
@@ -49,9 +51,21 @@ namespace JogoDaVelha.API.Controllers
 
             try
             {
-                var gameHelper = new GameService(GameSize);
-                gameHelper.Move(game, movement);
-                gameHelper.Result(game);
+                var gameService = new GameService(GameSize);
+                gameService.Move(game, movement);
+
+                if (UseCheckDrawRecursive)
+                {
+                    if (!gameService.CheckDrawRecursive(game))
+                    {
+                        gameService.CheckWinner(game);
+                    }
+                }
+                else
+                {
+                    gameService.Result(game);
+                }
+
                 _gameContext.Set<Game>().Update(game);
                 await _gameContext.SaveChangesAsync();
                 if (game.Winner != null )
